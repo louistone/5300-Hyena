@@ -1,0 +1,33 @@
+// heap_storage.cpp
+
+#include "heap_storage.h"
+
+bool test_heap_storage() {return true;}
+
+SlottedPage::SlottedPage(Dbt &block, BlockID block_id, bool is_new): DbBlock(block, block_id, is_new)
+{
+  if (is_new == false) {
+    this->num_records = 0;
+    this->end_free = BLOCK_SZ - 1;
+    this->put_header();
+  }
+  else {
+    this->num_records = get_header(num_records, end_free, block_id);
+    this->end_free = get_header(num_records, end_free, block_id);
+  }
+}
+
+RecordID SlottedPage::add(const Dbt *data) {
+  if (!has_room(data->get_size() + 4)){
+    throw "Not enough room in block";
+  }
+  this->num_records += 1;
+  u_int16_t record_id = this->num_records;
+  u_int16_t size = data->get_size();
+  this->end_free -= size;
+  u_int16_t loc = this->end_free + 1;
+  put_header();
+  put_header(record_id, size, loc);
+  this->block(loc, (loc + size)) = data;
+  return record_id;
+}
