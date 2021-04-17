@@ -1,6 +1,7 @@
 // heap_storage.cpp
 
 #include "heap_storage.h"
+#include <cstring>
 
 bool test_heap_storage() {return true;}
 
@@ -31,7 +32,59 @@ RecordID SlottedPage::add(const Dbt *data) {
   return record_id;
 }
 
+
 Dbt SlottedPage::*get(RecordID record_id) {
-  u_int16_t size = get;
+  //  u_int16_t *size = num_records;
+  //u_int16_t *loc = end_free;
+
+  u_int16_t size;
   u_int16_t loc;
+
+  get_header(size, loc, record_id);
+
+  if (loc == 0){
+    return NULL;
+  }
+  
+  return new Dbt(this->address(loc), size);
+
+}
+
+
+void SlottedPage::put(RecordID record_id, const Dbt &data){
+  
+
+
+
+}
+
+
+
+void SlottedPage::get_header(u_int16_t &size, u_int16_t &loc, RecordID record_id){
+  size = get_n(4 * record_id);
+  loc = get_n(4 * record_id + 2);
+}
+
+void SlottedPage::put_header(RecordID id, u_int16_t size, u_int16_t loc) {
+  if (id == 0) {
+    size = this->num_records;
+    loc = this->end_free;
+  }
+  put_n(4*id, size);
+  put_n(4*id + 2, loc);
+}
+
+
+u_int16_t SlottedPage::get_n(u_int16_t offset) {
+    return *(u_int16_t*)this->address(offset);
+}
+
+
+void SlottedPage::put_n(u_int16_t offset, u_int16_t n) {
+    *(u_int16_t*)this->address(offset) = n;
+}
+
+
+void* SlottedPage::address(u_int16_t offset) {
+    return (void*)((char*)this->block.get_data() + offset);
 }
