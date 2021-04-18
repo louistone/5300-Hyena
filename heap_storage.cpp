@@ -86,12 +86,12 @@ void SlottedPage::del(RecordID record_id){
 
 }
 
-/*RecordIDs* SlottedPage::ids(void){
+RecordIDs* SlottedPage::ids(void){
   RecordIDs *id;
+  u_int16_t size;
+  u_int16_t loc;
   
-  for(int i = 1; i < num_records + 1; i++){
-    u_int16_t size;
-    u_int16_t loc;
+  for(int i = 1; i < this->num_records + 1; i++){
     get_header(size, loc, i);
     
     if(loc != 0){
@@ -99,8 +99,8 @@ void SlottedPage::del(RecordID record_id){
     }
     
     return id;
-    }*/
-
+  }
+}
 
 void SlottedPage::get_header(u_int16_t &size, u_int16_t &loc, RecordID record_id){
   size = get_n(4 * record_id);
@@ -115,6 +115,38 @@ void SlottedPage::put_header(RecordID id, u_int16_t size, u_int16_t loc) {
   put_n(4*id, size);
   put_n(4*id + 2, loc);
 }
+
+bool SlottedPage::has_room(u_int16_t size){
+
+  u_int16_t avalaible = (this->end_free - (this->num_records + 2)*4);
+
+  return size <= avalaible;
+}
+
+void SlottedPage::slide(u_int16_t start, u_int16_t end){
+  u_int16_t shifted = end - start;
+
+  if(shifted == 0){
+    return;
+  }
+
+  //  memcpy(this->address(this->end_free + 1 + shifted), memcpy(this->address(this->end_free + 1),  start), end); //fixme
+
+  for(u_int16_t i = 0; i < this->ids()->size(); i++){
+    u_int16_t size;
+    u_int16_t loc;
+
+    get_header(size, loc, i);
+
+    if(loc <= start){
+      loc += start;
+      put_header(i, size, loc);
+    }
+  }
+    this->end_free += shifted;
+    put_header();
+}
+
 
 
 u_int16_t SlottedPage::get_n(u_int16_t offset) {
@@ -131,4 +163,48 @@ void* SlottedPage::address(u_int16_t offset) {
     return (void*)((char*)this->block.get_data() + offset);
 }
 
+
+
+//--------------------------------HEAP TABLE-----------------------------------
+
+
+HeapTable::HeapTable(Identifier table_name, ColumnNames column_names, ColumnAttributes column_attributes):  DbRelation(table_name, column_names,column_attributes){
+
+  //  this->file = HeapFile(table_name);
+}
+
+void HeapTable::create(){
+
+  this->file.create();
+
+}
+
+void HeapTable::create_if_not_exists(){
+
+  try:
+    {
+      this->open();
+    }
+  catch(DbRelationError)
+    {
+      this->create();
+    }
+}
+
+
+void HeapTable::drop(){
+
+  this->file.delete();
+}
+
+
+void HeapTable::open(){
+
+  this->file.open();
+}
+
+void HeapTable::close(){
+
+  this->file.close();
+}
 
