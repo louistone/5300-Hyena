@@ -33,10 +33,7 @@ RecordID SlottedPage::add(const Dbt *data) {
 }
 
 
-Dbt SlottedPage::*get(RecordID record_id) {
-  //  u_int16_t *size = num_records;
-  //u_int16_t *loc = end_free;
-
+Dbt* SlottedPage::get(RecordID record_id) {
   u_int16_t size;
   u_int16_t loc;
 
@@ -53,11 +50,56 @@ Dbt SlottedPage::*get(RecordID record_id) {
 
 void SlottedPage::put(RecordID record_id, const Dbt &data){
   
+  u_int16_t size;
+  u_int16_t loc;
+  u_int16_t new_size = data.get_size();
+  u_int16_t extra;
+  
+  get_header(size, loc, record_id);
+
+  if(new_size > size){
+    extra = new_size - size;
+    if(!has_room(extra)){
+      throw DbBlockNoRoomError("Not enough room in block");
+    }
+    
+    slide(loc, loc - extra);
+    memcpy(this->address(loc - extra), data.get_data(), size);
+  }
+  else{
+    memcpy(this->address(loc), data.get_data(), new_size);
+    slide(loc + new_size, loc + size);
+  }
+
+  get_header(size, loc, record_id);
+  put_header(record_id, size, loc);
+}
 
 
+void SlottedPage::del(RecordID record_id){
+  u_int16_t size;
+  u_int16_t loc;
+
+  get_header(size, loc, record_id);
+  put_header(record_id, 0, 0);
+  slide(loc, loc + size);
 
 }
 
+/*RecordIDs* SlottedPage::ids(void){
+  RecordIDs *id;
+  
+  for(int i = 1; i < num_records + 1; i++){
+    u_int16_t size;
+    u_int16_t loc;
+    get_header(size, loc, i);
+    
+    if(loc != 0){
+      id->push_back(i);
+    }
+    
+    return id;
+    }*/
 
 
 void SlottedPage::get_header(u_int16_t &size, u_int16_t &loc, RecordID record_id){
@@ -88,3 +130,5 @@ void SlottedPage::put_n(u_int16_t offset, u_int16_t n) {
 void* SlottedPage::address(u_int16_t offset) {
     return (void*)((char*)this->block.get_data() + offset);
 }
+
+
