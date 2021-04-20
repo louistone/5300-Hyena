@@ -2,8 +2,6 @@
 
 Adama Sanoh & Bryn Lasher
 
-Hand off video link: 
-
 On CS1 make your directories, then clone our repository.
 '''
 $ mkdir cpsc5300
@@ -44,4 +42,6 @@ virtual Handles *select();
 virtual ValueDict *project(Handle handle);
 virtual ValueDict *project(Handle handle, const ColumnNames *column_names);
 Also, insert only handles two data types for now, INTEGER (or INT) and TEXT. 
+
+While milestone 1 should run fine, milestone 2 has an error.
 
