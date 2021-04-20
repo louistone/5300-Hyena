@@ -1,3 +1,4 @@
+
 // heap_storage.cpp
 
 #include "heap_storage.h"
@@ -17,7 +18,6 @@ bool test_heap_storage() {
 	column_attributes.push_back(ca);
 	ca.set_data_type(ColumnAttribute::TEXT);
 	column_attributes.push_back(ca);
-    //    std::cout<< "Before HeapTable" << std::endl;
     HeapTable table1("_test_create_drop_cpp", column_names, column_attributes);
     table1.create();
     std::cout << "create ok" << std::endl;
@@ -413,7 +413,7 @@ ValueDict* HeapTable::validate(const ValueDict *row){
 Handle HeapTable::append(const ValueDict *row){
   Dbt *data = this->marshal(row);
 
-  SlottedPage *block = this->file.get(this->file.get_last_blobk_id());
+  SlottedPage *block = this->file.get(this->file.get_last_block_id());
 
 
   u_int16_t  record_id;;
