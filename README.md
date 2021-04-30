@@ -46,3 +46,6 @@ Also, insert only handles two data types for now, INTEGER (or INT) and TEXT.
 
 While milestone 1 should run fine, milestone 2 has an error.
 
+---
+
+## Milestone3: Schema Storage -- Team: Tong Xu, Yinhui Li
